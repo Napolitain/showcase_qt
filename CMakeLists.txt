@@ -12,6 +12,7 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        Graphs
         REQUIRED)
 
 add_executable(showcase_qt main.cpp
@@ -36,6 +37,7 @@ target_link_libraries(showcase_qt
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::Graphs
 )
 
 if (WIN32) # AND NOT DEFINED CMAKE_TOOLCHAIN_FILE

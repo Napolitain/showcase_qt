@@ -15,7 +15,7 @@
 
 CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 	// Requirements :
-	auto layout = new QVBoxLayout();
+	auto layout = new QGridLayout();
 
 	// - A text field for the key input (full length with some margin, which we can type in).
 	auto keyInput = new QTextEdit();
@@ -46,10 +46,32 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 	methodSelector->setContentsMargins(100, 100, 100, 100);
 	methodSelector->show();
 
-	layout->addWidget(keyInput);
-	layout->addWidget(dataInput);
-	layout->addWidget(encryptedDataOutput);
-	layout->addWidget(methodSelector);
+	// Graphs :
+	// - Entropy of the data, with the entropy of the data.
+	QLabel *entropyData = new QLabel("Entropy of the data: ");
+	entropyData->show();
+
+	// - Entropy of the encrypted data, with the entropy of the data.
+	QLabel *entropyEncryptedData = new QLabel("Entropy of the encrypted data: ");
+	entropyEncryptedData->show();
+
+	std::unordered_map<char, int> dataHistogram;
+	std::unordered_map<char, int> encryptedDataHistogram;
+	for (int i = 0; i < 256; ++i) {
+		dataHistogram[i] = 0;
+		encryptedDataHistogram[i] = 0;
+	}
+	// - Histogram of the data, with the frequency of each character.
+
+
+	// - Histogram of the encrypted data, with the frequency of each character.
+
+	layout->addWidget(keyInput, 0, 0);
+	layout->addWidget(methodSelector, 1, 0);
+	layout->addWidget(dataInput, 2, 0);
+	layout->addWidget(encryptedDataOutput, 3, 0);
+	layout->addWidget(entropyData, 0, 1);
+	layout->addWidget(entropyEncryptedData, 1, 1);
 
 	auto centralWidget = new QWidget();
 	centralWidget->setLayout(layout);
@@ -57,13 +79,14 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 
 	// Events :
 	// - When the key input is modified, the key is updated in the model and the encrypted data is updated, using async processing.
-	keyInput->connect(keyInput, &QTextEdit::textChanged, [this, keyInput, dataInput, encryptedDataOutput]() {
+	keyInput->connect(keyInput, &QTextEdit::textChanged, [this, keyInput, entropyEncryptedData, encryptedDataOutput]() {
 		try {
 			dataCrypto.keyUpdated(keyInput->toPlainText().toStdString());
 		} catch (const std::runtime_error &e) {
 			return;
 		}
 		encryptedDataOutput->setText(QString::fromStdString(dataCrypto.getEncryptedData()));
+		entropyEncryptedData->setText(QString::fromStdString("Entropy of the encrypted data: " + std::to_string(dataCrypto.getEncryptedDataEntropy())));
 	});
 	// - Opening a text file as a key file.
 	auto menuBar = mainWindow.menuBar();
@@ -81,7 +104,7 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 	});
 
 	// - When the data input is modified, the data is updated in the model and the encrypted data is updated, using async processing.
-	dataInput->connect(dataInput, &QTextEdit::textChanged, [this, keyInput, dataInput, encryptedDataOutput]() {
+	dataInput->connect(dataInput, &QTextEdit::textChanged, [this, entropyData, entropyEncryptedData, dataInput, encryptedDataOutput]() {
 		try {
 			auto textData = std::make_unique<TextData>(dataInput->toPlainText().toStdString());
 			dataCrypto.dataUpdated(std::move(textData));
@@ -89,6 +112,8 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 			return;
 		}
 		encryptedDataOutput->setText(QString::fromStdString(dataCrypto.getEncryptedData()));
+		entropyData->setText(QString::fromStdString("Entropy of the data: " + std::to_string(dataCrypto.getEntropy())));
+		entropyEncryptedData->setText(QString::fromStdString("Entropy of the encrypted data: " + std::to_string(dataCrypto.getEncryptedDataEntropy())));
 	});
 	// - Opening a text file as a data file.
 	fileMenu->addAction("Open data file", [this, &mainWindow, dataInput]() {
@@ -104,7 +129,7 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 	});
 
 	// - When the method selector is modified, the method is updated in the model and the encrypted data is updated, using async processing.
-	methodSelector->connect(methodSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, keyInput, dataInput, encryptedDataOutput, methodSelector]() {
+	methodSelector->connect(methodSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this, entropyData, entropyEncryptedData, encryptedDataOutput, methodSelector]() {
 		try {
 			auto method = methodSelector->currentText().toStdString();
 			if (method == "XOR") {
@@ -117,6 +142,8 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 			return;
 		}
 		encryptedDataOutput->setText(QString::fromStdString(dataCrypto.getEncryptedData()));
+		entropyData->setText(QString::fromStdString("Entropy of the data: " + std::to_string(dataCrypto.getEntropy())));
+		entropyEncryptedData->setText(QString::fromStdString("Entropy of the encrypted data: " + std::to_string(dataCrypto.getEncryptedDataEntropy())));
 	});
 
 }

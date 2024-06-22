@@ -18,6 +18,10 @@ void DataCrypto::setCryptoMethod(std::unique_ptr<ICryptoMethod> cryptoMethod) {
 	this->cryptoMethod = std::move(cryptoMethod);
 }
 
+std::string DataCrypto::getData() {
+	return data->getData();
+}
+
 std::string DataCrypto::getEncryptedData() {
 	return cryptoMethod->encrypt(this->data->getData(), key);
 }
@@ -41,6 +45,7 @@ void DataCrypto::keyUpdated(std::string key) {
 void DataCrypto::dataUpdated(std::unique_ptr<IData> data) {
 	setData(std::move(data));
 
+	this->entropy = calculateEntropy(this->data->getData());
 	update();
 }
 
@@ -55,4 +60,30 @@ void DataCrypto::update() {
 	guardUpdate();
 
 	setEncryptedData();
+	this->encryptedDataEntropy = calculateEntropy(this->encryptedData);
+}
+
+float DataCrypto::calculateEntropy(const std::string& data) {
+	float entropy = 0;
+	for (int c = 0; c < 256; c++) {
+		float px = 0;
+		for (char d : data) {
+			if (d == c) {
+				px++;
+			}
+		}
+		px /= data.size();
+		if (px > 0) {
+			entropy -= px * log2(px);
+		}
+	}
+	return entropy;
+}
+
+float DataCrypto::getEntropy() const {
+	return entropy;
+}
+
+float DataCrypto::getEncryptedDataEntropy() const {
+	return encryptedDataEntropy;
 }

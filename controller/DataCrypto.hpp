@@ -18,12 +18,16 @@ class DataCrypto {
 	// This is a pointer to an interface, so we need to use a smart pointer.
 	// It will be used to change easily the encryption method.
 	std::unique_ptr<ICryptoMethod> cryptoMethod;
+	float entropy;
+	float encryptedDataEntropy;
 
 	// Internal methods to update the encrypted data, used by the controller methods
 	void setKey(std::string key);
 	void setData(std::unique_ptr<IData> data);
 	void setCryptoMethod(std::unique_ptr<ICryptoMethod> cryptoMethod);
 	void setEncryptedData();
+
+	static float calculateEntropy(const std::string& data);
 	void guardUpdate();
 	void update();
 
@@ -32,7 +36,10 @@ public:
 	void keyUpdated(std::string key);
 	void dataUpdated(std::unique_ptr<IData> data);
 	void cryptoMethodUpdated(std::unique_ptr<ICryptoMethod> cryptoMethod);
+	std::string getData();
 	std::string getEncryptedData();
+	[[nodiscard]] float getEntropy() const;
+	[[nodiscard]] float getEncryptedDataEntropy() const;
 };
 
 
