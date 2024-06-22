@@ -25,6 +25,7 @@ class DataCrypto {
 	void setCryptoMethod(std::unique_ptr<ICryptoMethod> cryptoMethod);
 	void setEncryptedData();
 	void guardUpdate();
+	void update();
 
 public:
 	// Controller methods accessible from the view

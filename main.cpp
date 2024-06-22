@@ -5,11 +5,8 @@
 
 #include <QApplication>
 #include <QWindow>
-#include <QMenu>
-#include <QMenuBar>
 #include <QMainWindow>
 #include <QLabel>
-#include <QFileDialog>
 #include "view/CryptoAnalysisView.hpp"
 
 int main(int argc, char *argv[]) {
@@ -25,27 +22,8 @@ int main(int argc, char *argv[]) {
 	// Show the window
 	window.show();
 
-	// Create a menu bar
-	auto menuBar = window.menuBar();
-	QMenu *fileMenu = menuBar->addMenu("File");
-	
-	// Add actions to the menu
-	// Open text file action
-	fileMenu->addAction("Open Text File", [&]() {
-		QString fileName = QFileDialog::getOpenFileName(&window, "Open Text File", "", "Text Files (*.txt)");
-		if (!fileName.isEmpty()) {
-			QFile file(fileName);
-			if (file.open(QIODevice::ReadOnly)) {
-				QByteArray data = file.readAll();
-				auto label = new QLabel(QString::fromUtf8(data));
-				window.setCentralWidget(label);
-			}
-		}
-	});
-
 	// Crypto analysis view
 	CryptoAnalysisView cryptoAnalysisView(window);
-
 
 	return QApplication::exec();
 }

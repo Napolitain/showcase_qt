@@ -8,8 +8,12 @@
 #include "CryptoAnalysisView.hpp"
 #include "../model/Data/TextData.hpp"
 #include "../model/CryptoMethods/XorMethod.hpp"
+#include <QMenu>
+#include <QMenuBar>
+#include <QFileDialog>
+#include <iostream>
 
-CryptoAnalysisView::CryptoAnalysisView(QMainWindow &parent) {
+CryptoAnalysisView::CryptoAnalysisView(QMainWindow &mainWindow) {
 	// Requirements :
 	auto layout = new QVBoxLayout();
 
@@ -20,14 +24,14 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &parent) {
 	keyInput->show();
 
 	// - A text field for the data input (full length with some margin, which we can type in).
-	auto dataInput = new QTextEdit(&parent);
+	auto dataInput = new QTextEdit(&mainWindow);
 	dataInput->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	dataInput->setContentsMargins(100, 100, 100, 100);
 	dataInput->setMinimumHeight(Constants::WINDOW_HEIGHT / 2 - 200);
 	dataInput->show();
 
 	// - A text field for the encrypted data output (full length with some margin, which we can't type in).
-	auto encryptedDataOutput = new QTextEdit(&parent);
+	auto encryptedDataOutput = new QTextEdit(&mainWindow);
 	encryptedDataOutput->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	encryptedDataOutput->setContentsMargins(100, 100, 100, 100);
 	encryptedDataOutput->setMinimumHeight(Constants::WINDOW_HEIGHT / 2 - 200);
@@ -49,7 +53,7 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &parent) {
 
 	auto centralWidget = new QWidget();
 	centralWidget->setLayout(layout);
-	parent.setCentralWidget(centralWidget);
+	mainWindow.setCentralWidget(centralWidget);
 
 	// Events :
 	// - When the key input is modified, the key is updated in the model and the encrypted data is updated, using async processing.
@@ -61,6 +65,20 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &parent) {
 		}
 		encryptedDataOutput->setText(QString::fromStdString(dataCrypto.getEncryptedData()));
 	});
+	// - Opening a text file as a key file.
+	auto menuBar = mainWindow.menuBar();
+	QMenu *fileMenu = menuBar->addMenu("File");
+	fileMenu->addAction("Open key file", [this, &mainWindow, keyInput]() {
+		QString fileName = QFileDialog::getOpenFileName(&mainWindow, "Open key file", "", "Text Files (*.txt)");
+		if (!fileName.isEmpty()) {
+			QFile file(fileName);
+			if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+				QTextStream in(&file);
+				keyInput->setText(in.readAll());
+				file.close();
+			}
+		}
+	});
 
 	// - When the data input is modified, the data is updated in the model and the encrypted data is updated, using async processing.
 	dataInput->connect(dataInput, &QTextEdit::textChanged, [this, keyInput, dataInput, encryptedDataOutput]() {
@@ -71,6 +89,18 @@ CryptoAnalysisView::CryptoAnalysisView(QMainWindow &parent) {
 			return;
 		}
 		encryptedDataOutput->setText(QString::fromStdString(dataCrypto.getEncryptedData()));
+	});
+	// - Opening a text file as a data file.
+	fileMenu->addAction("Open data file", [this, &mainWindow, dataInput]() {
+		QString fileName = QFileDialog::getOpenFileName(&mainWindow, "Open data file", "", "Text Files (*.txt)");
+		if (!fileName.isEmpty()) {
+			QFile file(fileName);
+			if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+				QTextStream in(&file);
+				dataInput->setText(in.readAll());
+				file.close();
+			}
+		}
 	});
 
 	// - When the method selector is modified, the method is updated in the model and the encrypted data is updated, using async processing.

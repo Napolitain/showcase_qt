@@ -35,22 +35,23 @@ void DataCrypto::guardUpdate() {
 void DataCrypto::keyUpdated(std::string key) {
 	setKey(std::move(key));
 
-	guardUpdate();
-
-	setEncryptedData();
+	update();
 }
 
 void DataCrypto::dataUpdated(std::unique_ptr<IData> data) {
 	setData(std::move(data));
 
-	guardUpdate();
-
-	setEncryptedData();
+	update();
 }
 
 void DataCrypto::cryptoMethodUpdated(std::unique_ptr<ICryptoMethod> cryptoMethod) {
 	setCryptoMethod(std::move(cryptoMethod));
 
+	update();
+}
+
+void DataCrypto::update() {
+	// Guard clause, throw an exception if the data is not ready to trigger the update
 	guardUpdate();
 
 	setEncryptedData();

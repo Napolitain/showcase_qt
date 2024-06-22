@@ -21,7 +21,10 @@
 #include "Constants.hpp"
 
 class CryptoAnalysisView {
+	// Controller
 	DataCrypto dataCrypto;
+
+	// View elements
 
 public:
 	/**
@@ -31,7 +34,7 @@ public:
 	 * - A list of open actions for the data, and the key in the menu bar
 	 * Those fields are included in the current MainWindow
 	 */
-	explicit CryptoAnalysisView(QMainWindow &window);
+	explicit CryptoAnalysisView(QMainWindow &mainWindow);
 
 };
 
